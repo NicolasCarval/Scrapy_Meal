@@ -22,9 +22,19 @@
                 <h2>Our suggestions</h2>
 
                 <br />
+                <h5>Total difference : {{ show[0] }}</h5>
+                <h5>Available at M&M : {{ show[1] }}</h5>
+                <h5>Available at Aldi : {{ show[2] }}</h5>
+                <br />
+
+                <div id='chart' class='chart'></div>
+
+                <br />
                 {% for table in tables %}
                 {{ table|safe }}
                 {% endfor %}
+
+
             </div>
         </div>
 
@@ -36,3 +46,9 @@
 
 </body>
 </html>
+
+<script src='https://cdn.plot.ly/plotly-latest.min.js'></script>
+<script type='text/javascript'>
+        var graphs = {{graphJSON | safe}};
+        Plotly.plot('chart',graphs,{});
+</script>

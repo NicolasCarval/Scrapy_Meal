@@ -14,6 +14,7 @@ import re
 import copy
 import plotly
 import plotly.express as px
+import plotly.graph_objects as go
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -122,6 +123,7 @@ def scrap_recipe():
         recette=input("veuillez entrer une nouvelle recette : ")
         wd.back();
     print("success")
+    print(pic)
     if(len(nom_recette)>=1):
         df = list(zip(nom_recette, lien_recette))
         return render_template('Choose_recipe.html',recipee = recipe_to_scrap[0], tables=df)
@@ -166,13 +168,21 @@ def scrap_market():
     print(match_list)
     print(aldi_list)
     
-    print(compar_brand(aldi_list,match_list,"Aldi","Match & Smatch"))     
+    diff,low,total_a,total_b,prix_a,prix_b,available_a,available_b = compar_brand(aldi_list,match_list,"Aldi","Match & Smatch")    
+    
+    result = pd.DataFrame({"Prix Match & Smatch":prix_a, "Prix Aldi":prix_b})
+    show = [diff,available_a, available_b]
+    colors = ['lightslategray',] * 2
+    colors[0] = 'Green'
+    if total_a >total_b:
+        colors[0] = 'lightslategray'
+        colors[1] = 'Green'
 
-    
-    
-    result = pd.DataFrame({"Market":["Carrefour","Auchan", "Lidl"], "Total":["10€", "14€", "20€"]})
-    
-    return render_template('Best_market.html', tables=[result.to_html(classes='data')], titles=result.columns.values)
+    fig = go.Figure(data=[go.Bar(x=['Match & Smatch', 'Aldi'],
+                                 y=[float(total_a), float(total_b)],marker_color=colors)])
+    fig.update_layout(title_text='Prix total le moins cher')
+    graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)                                                                                    
+    return render_template('Best_market.html', graphJSON=graphJSON,show=show, tables=[result.to_html(classes='data')], titles=result.columns.values)
 
 
 
@@ -505,6 +515,8 @@ def get_liste_achat_aldi(list_ingred):
   for i in list_ingred:
     val=get_produit_aldi(i)
     if val is not None:
+      print(val)
+      val["prix_u"] = val.apply(lambda x: x["prix_total"] if x["prix_u"] is None else  x["prix_u"] , axis=1)
       val['prix_u'] = val['prix_u'].astype('float32')
       val=val.sort_values(by=['prix_u'])
       liste_achat_match[i]=[val.head(1)["nom_produit"].tolist()[0],val.head(1)["prix_u"].tolist()[0],val.head(1)["prix_total"].tolist()[0]]
@@ -518,10 +530,8 @@ def compar_brand(lista,listb,namea,nameb):
     available_a=0
     prix_b=[]
     available_b=0
-    name=[]
     for i in lista.keys():
             if lista[i] is not None and listb[i] is not None:
-                name=[]
                 prix_a.append(float(lista[i][2]))
                 prix_b.append(float(listb[i][2].replace(",",".")))
                 available_b+=1
@@ -532,13 +542,16 @@ def compar_brand(lista,listb,namea,nameb):
                 available_a+=1
     total_a=sum(prix_a)
     total_b=sum(prix_b)
-    diff=abs(total_a-total_b)/((total_a+total_b)/2)*100
+    try:
+        diff=abs(total_a-total_b)/((total_a+total_b)/2)*100
+    except:
+        diff = None
     if total_a<total_b:
         low=namea
     else:
         low=nameb
         
-    return(diff,low,total_a,total_b,prix_a,prix_b,available_a,available_b)
+    return diff,low,total_a,total_b,prix_a,prix_b,available_a,available_b
 
 #%% MAIN
 if __name__ == "__main__":

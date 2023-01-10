@@ -18,17 +18,28 @@
 
     <div class="row">
         <div class="leftcolumn">
-            <div class="card">
+            <div class="card" id="second" style="display:none;">
+                <div class="bar bar1"></div>
+                <div class="bar bar2"></div>
+                <div class="bar bar3"></div>
+                <div class="bar bar4"></div>
+                <div class="bar bar5"></div>
+                <div class="bar bar6"></div>
+                <div class="bar bar7"></div>
+                <div class="bar bar8"></div>
+            </div>
+            <div id="first" class="card">
                 <h2>List of recipe</h2>
                 <h5>{{ recipee }} </h5>
 
                 <br />
-                <form class="inputs" action="{{ url_for('scrap_ingredients')}}" method="post">
+                <form class="inputs" action="{{ url_for('scrap_ingredients')}}" method="post" onsubmit="document.getElementById('second').style.display = '';">
 
                     {% for table in tables %}
-                    <label for="id_{{table[0]}}">{{table[0]}}</label>
-                    <input type="checkbox" id="id_{{table[0]}}" name="ids" value="{{table[1]}}">
-                    <br />
+                    <div class="checks">
+                        <input type="checkbox" id="id_{{table[0]}}" name="ids" value="{{table[1]}}">
+                        <label for="id_{{table[0]}}">{{table[0]}}</label>
+                    </div>
                     {% endfor %}
 
                     <div class="inputsOptions">
@@ -37,6 +48,7 @@
 
                 </form>
             </div>
+
         </div>
 
     </div>
