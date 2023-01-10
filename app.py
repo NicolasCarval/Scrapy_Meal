@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Fri Dec 24 10:15:54 2021
-
-@author: Nicolas Carval
+@author: Nicolas Carval & Bruno Pincet 
 """
 #%% Libraries and MongoDB connection
 
@@ -28,7 +26,12 @@ from selenium.common.exceptions import TimeoutException
 import pandas as pd
 import time
 
-wd = webdriver.PhantomJS(r"C:\Apps\phantomjs-2.1.1-windows\bin\phantomjs.exe")
+chrome_options = webdriver.ChromeOptions()
+chrome_options.add_argument('--headless')
+chrome_options.add_argument('--no-sandbox')
+chrome_options.add_argument('--disable-dev-shm-usage')
+
+wd = webdriver.Chrome("chromedriver.exe",options=chrome_options)
 
 
 #%% STATIC PAGES
@@ -101,7 +104,7 @@ def scrap_recipe():
     
         lenOfPage = wd.execute_script("window.scrollTo(0, document.body.scrollHeight);var lenOfPage=document.body.scrollHeight;return lenOfPage;")
         
-        """
+        
         while(len(pic)!=len(lien_recette)):
             print("boucle while")
             pic=[]
@@ -112,7 +115,7 @@ def scrap_recipe():
             for i in p:
                 pic.append(i.get_attribute("src"))    
             print(len(pic))
-        """
+        
         
     else :
         print("Aucune recette trouvée")
@@ -158,9 +161,13 @@ def scrap_market():
     
 
     #scrap ing
-    result = get_liste_achat_match(list_ingredient)
+    match_list = get_liste_achat_match(list_ingredient)
+    aldi_list=get_liste_achat_aldi(list_ingredient)
+    print(match_list)
+    print(aldi_list)
     
-    print(result)
+    print(compar_brand(aldi_list,match_list,"Aldi","Match & Smatch"))     
+
     
     
     result = pd.DataFrame({"Market":["Carrefour","Auchan", "Lidl"], "Total":["10€", "14€", "20€"]})
@@ -169,7 +176,7 @@ def scrap_market():
 
 
 
-
+#%% Regex pour traiter liste des ingrédients 
 
 def get_clean_ingr(liste_ingr):
   df_course = pd.DataFrame(columns = ["Ingredient_brut", "Quantité", "Unité","Produit"])
@@ -361,8 +368,7 @@ def get_clean_ingr(liste_ingr):
   df_course=df_course.drop_duplicates()
   return df_course
 
-
-
+#%% Scrapping des Courses "Match & Smatch"
 
 def get_liste_achat_match(list_ingred):
   liste_achat_match={}
@@ -370,7 +376,6 @@ def get_liste_achat_match(list_ingred):
     val=get_produit_match(i)
     
     if val is not None and val.empty != True:
-        print(val)
         val['prix_u'] = val['prix_u'].str.replace(',','.')
         val['prix_u'] = val['prix_u'].astype('float32')
         val=val.sort_values(by=['prix_u'])
@@ -405,11 +410,9 @@ def get_produit_match(produit):
           return False
       return True
   print("before if")
-  print(wd.page_source)
   if check_exists_by_xpath('//*[@id="pageSearchContainer"]/div/div[2]/span/div[3]/span')==False:
     WebDriverWait(wd, 10).until(EC.presence_of_all_elements_located((By.CLASS_NAME, "label")))
     l=wd.find_elements(By.CLASS_NAME, "label")
-    print("in loop "+str(len(l)))
     if len(l)>5:
       l=l[0:5]
     for i in l:
@@ -446,8 +449,96 @@ def get_produit_match(produit):
                columns =['nom_produit',"cond",'prix_u', 'unite','prix_total'])
     
     
-    
     return df_produit_ingr
+
+#%% Scrapping des Courses "Aldi"
+
+def get_produit_aldi(produit):
+  try:
+    wd.get(f"https://www.aldi.be/fr/resultats-de-recherche.html?query={produit}")
+    wd.implicitly_wait(1)
+    wd.execute_script("window.scrollTo(0, 10000)") 
+    index=1
+    wd.implicitly_wait(2)
+    l=wd.find_elements(By.TAG_NAME, "section")
+    txt_l=[]
+    for i in l:
+      txt_l+=i.text.split("Résultats de recherche dans")
+
+    txt_l=list(filter(lambda x: x.startswith(" Assortiment"), txt_l))
+    txt_l=txt_l[0].replace(' Assortiment',"").split("AJOUTER À LA LISTE DE COURSES")
+    for i in range(len(txt_l)):
+      if i==0:
+        txt_l[i]=txt_l[i].split('\n')[1:-1]
+      else:
+        txt_l[i]=txt_l[i].split('\n')[2:-1]
+
+    if len(txt_l)>5:
+      txt_l=txt_l[:5]
+    elif len(txt_l)>2:
+      txt_l=txt_l[:-1]
+
+
+    nom_produit=[]
+    prix_u=[]
+    prix_total=[]
+
+    for i in txt_l:
+      if len(i)==2:
+        nom_produit.append(i[1])
+        prix_u.append(None)
+        prix_total.append(None)
+      else:
+        nom_produit.append(i[len(i)-2]+" "+i[len(i)-1])
+        prix_u.append(re.search('([0-9]{0,2}(?:[.][0-9]{1,2})?)/', i[len(i)-3]).group(1))
+        prix_total.append(i[0])
+
+
+    df_produit_ingr = pd.DataFrame(list(zip(nom_produit,prix_u,prix_total)),
+                  columns =['nom_produit','prix_u','prix_total'])
+    return df_produit_ingr
+  except:
+      return None
+
+def get_liste_achat_aldi(list_ingred):
+  liste_achat_match={}
+  for i in list_ingred:
+    val=get_produit_aldi(i)
+    if val is not None:
+      val['prix_u'] = val['prix_u'].astype('float32')
+      val=val.sort_values(by=['prix_u'])
+      liste_achat_match[i]=[val.head(1)["nom_produit"].tolist()[0],val.head(1)["prix_u"].tolist()[0],val.head(1)["prix_total"].tolist()[0]]
+    else:
+      liste_achat_match[i]=None
+  return liste_achat_match
+#%% Comparaison
+
+def compar_brand(lista,listb,namea,nameb):
+    prix_a=[]
+    available_a=0
+    prix_b=[]
+    available_b=0
+    name=[]
+    for i in lista.keys():
+            if lista[i] is not None and listb[i] is not None:
+                name=[]
+                prix_a.append(float(lista[i][2]))
+                prix_b.append(float(listb[i][2].replace(",",".")))
+                available_b+=1
+                available_a+=1
+            elif lista[i] is None:
+                available_b+=1
+            else:
+                available_a+=1
+    total_a=sum(prix_a)
+    total_b=sum(prix_b)
+    diff=abs(total_a-total_b)/((total_a+total_b)/2)*100
+    if total_a<total_b:
+        low=namea
+    else:
+        low=nameb
+        
+    return(diff,low,total_a,total_b,prix_a,prix_b,available_a,available_b)
 
 #%% MAIN
 if __name__ == "__main__":
