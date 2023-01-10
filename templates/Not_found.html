@@ -1,0 +1,27 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>User</title>
+    <link href="../static/styles.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body>
+    <div class="container">
+        <div class="brand-title">Not found</div>
+        <div><a href="{{ url_for('home') }}" class="button">Home</a></div>
+
+        <div class="result">{{ recipee }}</div>
+
+        <br />
+            {% for table in tables %}
+            <label for="id_{{table}}">{{table}}</label>
+            <input type="checkbox" id="id_{{table}}" name="ids" checked value="{{table}}">
+
+            {% endfor %}
+
+    </div>
+
+</body>
+</html>

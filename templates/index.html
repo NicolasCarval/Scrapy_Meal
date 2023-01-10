@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>Scrapy Meal</title>
+    <link href="../static/styles.css" rel="stylesheet" type="text/css" />
+
+</head>
+
+<body>
+
+    <div class="header">
+        <h1>Scrapy Meal</h1>
+    </div>
+
+    <div class="topnav">
+        <a href="https://github.com/NicolasCarval">Nicolas CARVAL</a>
+        <a href="https://github.com/GitBrunoCode">Bruno PINCET</a>
+        <a href="https://www.esilv.fr/" style="float:right">ESILV</a>
+    </div>
+
+    <div class="row">
+        <div class="leftcolumn">
+            <div class="card">
+                <h2>LOOK FOR A RECIPE</h2>
+                <h5>type-in a meal... </h5>
+                <form class="inputs" action="{{ url_for('scrap_recipe')}}" method="post">
+                    <div>
+                        <input type="text" name="Movie" id="Movie" placeholder=" ex : burger" autocomplete="off" required />
+                    </div>
+                    <button type="submit" class="button2">FIND</button>
+                </form>
+                <br />
+                <img src="https://www.2foodtrippers.com/wp-content/uploads/2022/02/Croissants-at-Cedric-Grolet-Opera-in-Paris-960x431.jpg.webp" alt="food" width="424" height="260">
+            </div>
+
+            
+        </div>
+
+    </div>
+
+    <div class="footer">
+        <h2>ESILV - Webscrapping and Data processing - 2022/2023</h2>
+    </div>
+</body>
+  </html>

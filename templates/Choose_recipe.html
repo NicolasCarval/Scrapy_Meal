@@ -1,0 +1,48 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>User</title>
+    <link href="../static/styles.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body>
+    <div class="header">
+        <h1>Scrapy Meal</h1>
+    </div>
+
+    <div class="topnav">
+        <a href="{{ url_for('home') }}" >HOME</a>
+    </div>
+
+    <div class="row">
+        <div class="leftcolumn">
+            <div class="card">
+                <h2>List of recipe</h2>
+                <h5>{{ recipee }} </h5>
+
+                <br />
+                <form class="inputs" action="{{ url_for('scrap_ingredients')}}" method="post">
+
+                    {% for table in tables %}
+                    <label for="id_{{table[0]}}">{{table[0]}}</label>
+                    <input type="checkbox" id="id_{{table[0]}}" name="ids" value="{{table[1]}}">
+                    <br />
+                    {% endfor %}
+
+                    <div class="inputsOptions">
+                        <button type="submit">GO</button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="footer">
+        <h2>ESILV - Webscrapping and Data processing - 2022/2023</h2>
+    </div>
+</body>
+</html>

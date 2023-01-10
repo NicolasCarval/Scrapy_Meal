@@ -1,0 +1,233 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial;
+    padding: 10px;
+    background: #f1f1f1;
+}
+
+/* Header/Blog Title */
+.header {
+    padding: 30px;
+    text-align: center;
+    background: #F0D179;
+}
+
+    .header h1 {
+        font-size: 50px;
+        color: #CC310A;
+    }
+
+/* Style the top navigation bar */
+.topnav {
+    overflow: hidden;
+    background-color: #CC310A;
+}
+
+    /* Style the topnav links */
+    .topnav a {
+        float: left;
+        display: block;
+        color: #f2f2f2;
+        text-align: center;
+        padding: 14px 16px;
+        text-decoration: none;
+    }
+
+        /* Change color on hover */
+        .topnav a:hover {
+            background-color: white;
+            color: #CC310A;
+        }
+
+/* Create two unequal columns that floats next to each other */
+/* Left column */
+.leftcolumn {
+    display: inline-block;
+    text-align: center;
+    width: 75%;
+}
+
+/* Fake image */
+.fakeimg {
+    background-color: #aaa;
+    width: 100%;
+    padding: 20px;
+}
+
+/* Add a card effect for articles */
+.card {
+    background-color: #F0D179;
+    padding: 20px;
+    margin-top: 20px;
+}
+
+/* Clear floats after the columns */
+.row {
+    text-align: center;
+}
+.row:after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+/* Footer */
+.footer {
+    padding: 10px;
+    text-align: center;
+    background: #F0D179;
+    margin-top: 10px;
+    border-style: solid;
+    border-color: black;
+}
+
+    .footer h2 {
+        font-size: 15px;
+        color: black;
+    }
+
+/* button */
+button {
+    margin: 10px auto;
+    background: #CC310A;
+    height: 40px;
+    border-radius: 4px;
+    cursor: pointer;
+    color: white;
+    font-weight: 800;
+    font-size: 16px;
+    width: 100px;
+    transition: background-color .3s;
+    padding: 0;
+    border: none;
+    outline: none;
+}
+
+    button:hover {
+        color: #CC310A;
+        background-color: white;
+    }
+
+
+/* Responsive layout - when the screen is less than 800px wide, make the two columns stack on top of each other instead of next to each other */
+@media screen and (max-width: 800px) {
+    .leftcolumn, .rightcolumn {
+        width: 100%;
+        padding: 0;
+    }
+}
+
+/* Responsive layout - when the screen is less than 400px wide, make the navigation links stack on top of each other instead of next to each other */
+@media screen and (max-width: 400px) {
+    .topnav a {
+        float: none;
+        width: 100%;
+    }
+}
+
+.title_great {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    text-align: center;
+    color: white;
+    font-weight: 900;
+}
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+    table td, table th {
+        border: 1px solid #ddd;
+        padding: 8px;
+        background-color:#f2f2f2;
+    }
+
+    table tr:nth-child(even) {
+        background-color: #ddd;
+    }
+
+    table tr:hover {
+        background-color: #ddd;
+    }
+
+    table th {
+        padding-top: 12px;
+        padding-bottom: 12px;
+        text-align: center;
+        background-color: #A00C40;
+        color: white;
+        font-weight:700;
+    }
+
+
+.middle {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    position: absolute;
+}
+
+.bar {
+    width: 10px;
+    height: 70px;
+    background: #fff;
+    display: inline-block;
+    transform-origin: bottom center;
+    border-top-right-radius: 20px;
+    border-top-left-radius: 20px;
+    /*   box-shadow:5px 10px 20px inset rgba(255,23,25.2); */
+    animation: loader 1.2s linear infinite;
+}
+
+.bar1 {
+    animation-delay: 0.1s;
+}
+
+.bar2 {
+    animation-delay: 0.2s;
+}
+
+.bar3 {
+    animation-delay: 0.3s;
+}
+
+.bar4 {
+    animation-delay: 0.4s;
+}
+
+.bar5 {
+    animation-delay: 0.5s;
+}
+
+.bar6 {
+    animation-delay: 0.6s;
+}
+
+.bar7 {
+    animation-delay: 0.7s;
+}
+
+.bar8 {
+    animation-delay: 0.8s;
+}
+
+@keyframes loader {
+    0% {
+        transform: scaleY(0.1);
+        background:;
+    }
+
+    50% {
+        transform: scaleY(1);
+        background: yellowgreen;
+    }
+
+    100% {
+        transform: scaleY(0.1);
+        background: transparent;
+    }
+}
