@@ -170,15 +170,15 @@ def scrap_market():
     
     diff,low,total_a,total_b,prix_a,prix_b,available_a,available_b = compar_brand(aldi_list,match_list,"Aldi","Match & Smatch")    
     
-    result = pd.DataFrame({"Prix Match & Smatch":prix_a, "Prix Aldi":prix_b})
-    show = [diff,available_a, available_b]
+    result = pd.DataFrame({"Prix Aldi ":prix_a, "Prix Match & Smatch ":prix_b})
+    show = [str(diff)+" %",available_a, available_b]
     colors = ['lightslategray',] * 2
     colors[0] = 'Green'
     if total_a >total_b:
         colors[0] = 'lightslategray'
         colors[1] = 'Green'
 
-    fig = go.Figure(data=[go.Bar(x=['Match & Smatch', 'Aldi'],
+    fig = go.Figure(data=[go.Bar(x=['Aldi', 'Match & Smatch'],
                                  y=[float(total_a), float(total_b)],marker_color=colors)])
     fig.update_layout(title_text='Prix total le moins cher')
     graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)                                                                                    
@@ -465,47 +465,68 @@ def get_produit_match(produit):
 
 def get_produit_aldi(produit):
   try:
+    
     wd.get(f"https://www.aldi.be/fr/resultats-de-recherche.html?query={produit}")
     wd.implicitly_wait(1)
-    wd.execute_script("window.scrollTo(0, 10000)") 
+    try:
+        wd.find_element(By.XPATH,'/html/body/div[1]/div[1]/div[1]/div[3]/div/div[2]/div/div/ul/li[2]/button').click()
+    except:
+        pass
+    lenOfPage = wd.execute_script("window.scrollTo(0, document.body.scrollHeight);var lenOfPage=document.body.scrollHeight;return lenOfPage;")
+
+    wd.execute_script("document.body.style.zoom='50%'")
+
+    for i in range(0,lenOfPage,600):
+                wd.execute_script(f"window.scrollTo(0, {i})") 
+                wd.implicitly_wait(2)
+    
+    
+    wd.implicitly_wait(1)
     index=1
     wd.implicitly_wait(2)
-    l=wd.find_elements(By.TAG_NAME, "section")
-    txt_l=[]
-    for i in l:
-      txt_l+=i.text.split("Résultats de recherche dans")
-
-    txt_l=list(filter(lambda x: x.startswith(" Assortiment"), txt_l))
-    txt_l=txt_l[0].replace(' Assortiment',"").split("AJOUTER À LA LISTE DE COURSES")
-    for i in range(len(txt_l)):
-      if i==0:
-        txt_l[i]=txt_l[i].split('\n')[1:-1]
-      else:
-        txt_l[i]=txt_l[i].split('\n')[2:-1]
-
-    if len(txt_l)>5:
-      txt_l=txt_l[:5]
-    elif len(txt_l)>2:
-      txt_l=txt_l[:-1]
-
-
+    
     nom_produit=[]
     prix_u=[]
     prix_total=[]
+    
+    
+    #Nom Produit
+    n=wd.find_elements(By.CLASS_NAME,"mod-article-tile__title")
+    for i in n:
+        try:
+            nom_produit.append(i.get_attribute('innerHTML'))
+        except:
+            nom_produit.append(None)
+            
+    if(len(nom_produit)>3):
+        nom_produit=nom_produit[:3]
+    
+    #Prix
+    p=wd.find_elements(By.CLASS_NAME,"price__wrapper")
+    for i in p:
+        try:
+            prix_total.append(i.get_attribute('innerHTML').split("<")[0])
+        except:
+            prix_total.append(None)
+            
+    if(len(prix_total)>3):
+        prix_total=prix_total[:3]
 
-    for i in txt_l:
-      if len(i)==2:
-        nom_produit.append(i[1])
-        prix_u.append(None)
-        prix_total.append(None)
-      else:
-        nom_produit.append(i[len(i)-2]+" "+i[len(i)-1])
-        prix_u.append(re.search('([0-9]{0,2}(?:[.][0-9]{1,2})?)/', i[len(i)-3]).group(1))
-        prix_total.append(i[0])
-
-
+    #Prix Unité
+    pu=wd.find_elements(By.CLASS_NAME,"price__base")
+    for i in pu:
+        try:
+            prix_u.append(re.search('([0-9]{0,2}(?:[.][0-9]{1,2})?)/', i.get_attribute('innerHTML')).group(1))
+        except:
+            prix_u.append(None)
+            
+    if(len(prix_u)>3):
+        prix_u=prix_u[:3]
+    
+    print(len(n),len(p),len(pu))
     df_produit_ingr = pd.DataFrame(list(zip(nom_produit,prix_u,prix_total)),
                   columns =['nom_produit','prix_u','prix_total'])
+     
     return df_produit_ingr
   except:
       return None
@@ -514,8 +535,9 @@ def get_liste_achat_aldi(list_ingred):
   liste_achat_match={}
   for i in list_ingred:
     val=get_produit_aldi(i)
-    if val is not None:
-      print(val)
+    print(val)
+    if val is not None and val.empty==False:
+      print("2: ",val)
       val["prix_u"] = val.apply(lambda x: x["prix_total"] if x["prix_u"] is None else  x["prix_u"] , axis=1)
       val['prix_u'] = val['prix_u'].astype('float32')
       val=val.sort_values(by=['prix_u'])
@@ -524,6 +546,7 @@ def get_liste_achat_aldi(list_ingred):
       liste_achat_match[i]=None
   return liste_achat_match
 #%% Comparaison
+import math
 
 def compar_brand(lista,listb,namea,nameb):
     prix_a=[]
@@ -551,7 +574,7 @@ def compar_brand(lista,listb,namea,nameb):
     else:
         low=nameb
         
-    return diff,low,total_a,total_b,prix_a,prix_b,available_a,available_b
+    return round(diff,2),low,total_a,total_b,prix_a,prix_b,available_a,available_b
 
 #%% MAIN
 if __name__ == "__main__":
