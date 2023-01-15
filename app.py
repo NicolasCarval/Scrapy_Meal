@@ -2,20 +2,26 @@
 """
 @author: Nicolas Carval & Bruno Pincet 
 """
-#%% Libraries and MongoDB connection
+#%% Libraries 
 
+#Main lib
 import numpy as np
 from flask import Flask, request, jsonify, render_template
 import pandas as pd
 import json
 import time
 import re
-
+from geopy.geocoders import Nominatim
+import requests
 import copy
+import jellyfish
+
+#Plot lib
 import plotly
 import plotly.express as px
 import plotly.graph_objects as go
 
+#Scrapping lib
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.select import Select
@@ -24,9 +30,8 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
-import pandas as pd
-import time
 
+#Driver Params
 chrome_options = webdriver.ChromeOptions()
 chrome_options.add_argument('--headless')
 chrome_options.add_argument('--no-sandbox')
@@ -36,9 +41,6 @@ wd = webdriver.Chrome("chromedriver.exe",options=chrome_options)
 
 
 #%% STATIC PAGES
-
-# method to send query to collection
-
 
 #APPLICATION
 app = Flask(__name__)
@@ -69,29 +71,36 @@ def Not_found():
 
 
 
-#%% QUERIES
+#%% Schema Client
 @app.route('/Choose_recipe',methods=['POST'])
+
 def scrap_recipe():
+    '''
+    Récupération de la recette écrite par l'utilisateur
+    Recherche de la barre de recherche sur 750g.com
+    Ecriture du titre de la recette dans la barre puis entrer
+    Si aucun résultat sur 750g demande à l'utilisateur d'entrer une autre recette
+    Sinon affiche les résultats
+    '''
     recipe_to_scrap =  [str(x) for x in request.form.values()]
     
     #scrap recip
     wd.get("https://www.750g.com/")
     wd.find_element(By.XPATH,'/html/body/header/div/div[2]/label').click()
     wd.implicitly_wait(3)
-    # 
+     
     
-    #recette=input("recette : ")
     recette=recipe_to_scrap[0]
     nom_recette=[]
     lien_recette=[]
     pic=[]
     
+    #localisation de la barre de recherche du site
     rech = wd.find_element(By.XPATH,'/html/body/header/div/div[2]/div/div/form/div/div/input')
     rech.send_keys(recette);
     rech.send_keys(Keys.ENTER);
     
-    #WebDriverWait(wd, 30).until(EC.presence_of_element_located((By.CLASS_NAME, "card-media")))
-    
+    #Si plusieurs recettes résultats alors affichage    
     if len(wd.find_elements(By.CLASS_NAME, "card-title")) > 0:
         print("len recipe ok")
         n=wd.find_elements(By.CLASS_NAME, "card-title")
@@ -117,7 +126,7 @@ def scrap_recipe():
                 pic.append(i.get_attribute("src"))    
             print(len(pic))
         
-        
+    #Sinon redemmande une autre cette   
     else :
         print("Aucune recette trouvée")
         recette=input("veuillez entrer une nouvelle recette : ")
@@ -125,7 +134,7 @@ def scrap_recipe():
     print("success")
     print(pic)
     if(len(nom_recette)>=1):
-        df = list(zip(nom_recette, lien_recette))
+        df = list(zip(nom_recette, lien_recette,pic))
         return render_template('Choose_recipe.html',recipee = recipe_to_scrap[0], tables=df)
     else :
         df = [" no recipe found "]
@@ -135,6 +144,12 @@ def scrap_recipe():
 
 @app.route('/Recipe',methods=['POST'])
 def scrap_ingredients():
+    """
+    récupération de la liste des ingrédients
+    récupération des étapes de la recette
+    sur le lien de la recette
+
+    """
     recipe_to_scrap =  request.form.getlist("ids")[0]
     print(request)
     print(recipe_to_scrap)
@@ -157,17 +172,27 @@ def scrap_ingredients():
 
 @app.route('/Best_market',methods=['POST'])
 def scrap_market():
+    '''
+    Pour tous les ingrédients dans la liste:
+        Recherche sur Aldi
+        Recherche sur SuperMarcheMatch
+    Comparaison des résultats
+    
+    '''
     ing_to_scrap =  request.form.getlist("ids")
     list_ingredient = [el.split(" - ")[0] for el in ing_to_scrap]
     print(list_ingredient)
     
 
     #scrap ing
+    # sur match
     match_list = get_liste_achat_match(list_ingredient)
+    # sur aldi
     aldi_list=get_liste_achat_aldi(list_ingredient)
     print(match_list)
     print(aldi_list)
     
+    # calcule de la différence
     diff,low,total_a,total_b,prix_a,prix_b,available_a,available_b = compar_brand(aldi_list,match_list,"Aldi","Match & Smatch")    
     
     result = pd.DataFrame({"Prix Aldi ":prix_a, "Prix Match & Smatch ":prix_b})
@@ -177,11 +202,48 @@ def scrap_market():
     if total_a >total_b:
         colors[0] = 'lightslategray'
         colors[1] = 'Green'
-
+    #affichage
     fig = go.Figure(data=[go.Bar(x=['Aldi', 'Match & Smatch'],
                                  y=[float(total_a), float(total_b)],marker_color=colors)])
     fig.update_layout(title_text='Prix total le moins cher')
-    graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)                                                                                    
+    graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
+
+    ###### Nouveau bloc à entrer dans une nouvelle page #####
+    
+    #Obtenir l'adresse de l'utilisateur
+    locator = Nominatim(user_agent="myGeocoder")
+    location=None
+    while location is None :
+        address=input("entrer votre adresse :")
+        location = locator.geocode(address)
+    #Rechercher les magasins les plus proche
+    aldi_nom,aldi_d,aldi_km=get_nearest_mag("Aldi",location)
+    match_nom,match_d,match_km=get_nearest_mag("Match",location)
+    #return nom du mag, durée en min et distance en km 
+    print(aldi_nom,match_nom)
+    #type de carburant de la voiture de l'utilisateur
+    #faire cocher à l'utilisateur dans ce df
+    dfoil=pd.read_html('https://carbu.com/france/prixmoyens')[0]
+    dfoil["Aujourd'hui"]=dfoil["Aujourd'hui"].str.extract(r'(\d,\d+)')
+    dfoil["Aujourd'hui"]=dfoil["Aujourd'hui"].str.replace(',','.')
+    dfoil["Aujourd'hui"] = dfoil["Aujourd'hui"].astype('float64')
+    dfoil=dfoil.iloc[:,:2]
+    dfoil.columns=["type de carburant","prix €/L"]
+    eurol=1.950
+    
+    #et Lui demander sa consommation au 100km
+    #Calcul du prix du trajet dans chaque mag
+    conso=5
+
+    prix_trajet_aldi=((conso/100)*aldi_km)*eurol
+    prix_trajet_match=((conso/100)*match_km)*eurol
+    
+    print(prix_trajet_aldi,prix_trajet_match)
+    
+
+
+
+                                                                                  
     return render_template('Best_market.html', graphJSON=graphJSON,show=show, tables=[result.to_html(classes='data')], titles=result.columns.values)
 
 
@@ -387,8 +449,11 @@ def get_liste_achat_match(list_ingred):
     
     if val is not None and val.empty != True:
         val['prix_u'] = val['prix_u'].str.replace(',','.')
+        val["prix_u"] = val.apply(lambda x: x["prix_total"] if x["prix_u"] is None else  x["prix_u"] , axis=1)
+        val['prix_u'] = val['prix_u'].str.replace(',','.')
         val['prix_u'] = val['prix_u'].astype('float32')
-        val=val.sort_values(by=['prix_u'])
+        val["leven"] = val["nom_produit"].apply(lambda x:jellyfish.damerau_levenshtein_distance(i, x))
+        val=val.sort_values(by=['leven','prix_u'])
         liste_achat_match[i]=[val.head(1)["nom_produit"].tolist()[0],val.head(1)["prix_u"].tolist()[0],val.head(1)["prix_total"].tolist()[0]]
     else:
       liste_achat_match[i]=None
@@ -498,8 +563,8 @@ def get_produit_aldi(produit):
         except:
             nom_produit.append(None)
             
-    if(len(nom_produit)>3):
-        nom_produit=nom_produit[:3]
+    if(len(nom_produit)>5):
+        nom_produit=nom_produit[:5]
     
     #Prix
     p=wd.find_elements(By.CLASS_NAME,"price__wrapper")
@@ -509,8 +574,8 @@ def get_produit_aldi(produit):
         except:
             prix_total.append(None)
             
-    if(len(prix_total)>3):
-        prix_total=prix_total[:3]
+    if(len(prix_total)>5):
+        prix_total=prix_total[:5]
 
     #Prix Unité
     pu=wd.find_elements(By.CLASS_NAME,"price__base")
@@ -520,8 +585,8 @@ def get_produit_aldi(produit):
         except:
             prix_u.append(None)
             
-    if(len(prix_u)>3):
-        prix_u=prix_u[:3]
+    if(len(prix_u)>5):
+        prix_u=prix_u[:5]
     
     print(len(n),len(p),len(pu))
     df_produit_ingr = pd.DataFrame(list(zip(nom_produit,prix_u,prix_total)),
@@ -540,7 +605,8 @@ def get_liste_achat_aldi(list_ingred):
       print("2: ",val)
       val["prix_u"] = val.apply(lambda x: x["prix_total"] if x["prix_u"] is None else  x["prix_u"] , axis=1)
       val['prix_u'] = val['prix_u'].astype('float32')
-      val=val.sort_values(by=['prix_u'])
+      val["leven"] = val["nom_produit"].apply(lambda x:jellyfish.damerau_levenshtein_distance(i, x))
+      val=val.sort_values(by=['leven','prix_u'])
       liste_achat_match[i]=[val.head(1)["nom_produit"].tolist()[0],val.head(1)["prix_u"].tolist()[0],val.head(1)["prix_total"].tolist()[0]]
     else:
       liste_achat_match[i]=None
@@ -575,6 +641,33 @@ def compar_brand(lista,listb,namea,nameb):
         low=nameb
         
     return round(diff,2),low,total_a,total_b,prix_a,prix_b,available_a,available_b
+
+#%% Recherche du magasin le plus proche
+
+def get_nearest_mag(nom_mag,location):
+  #Obtenir la liste des adresses
+  if nom_mag=="Aldi":
+    mag_add=pd.read_csv("https://raw.githubusercontent.com/NicolasCarval/Scrapy_Meal/master/data_adresse/Aldi_address.csv",index_col=0)
+  else:
+    mag_add=pd.read_csv("https://raw.githubusercontent.com/NicolasCarval/Scrapy_Meal/master/data_adresse/Match_address.csv",index_col=0)
+  mag_add["addresse"]=mag_add["addresse"].apply(lambda x : x.replace("\n"," "))
+  
+  min_duree=999999999999
+  min_distance=99999999999
+  nom_mag=""
+
+  for index, row in mag_add.iterrows():
+    r = requests.get(f"http://router.project-osrm.org/route/v1/car/{location.longitude},{location.latitude};{row['long']},{row['lat']}?overview=false""")
+    routes = json.loads(r.content)
+    durée = routes.get("routes")[0]["duration"]
+    distance = routes.get("routes")[0]["distance"]
+
+    if distance<min_distance:
+      min_durée=durée
+      min_distance=distance
+      nom_mag=row["nom_mag"]
+
+  return(nom_mag,round(min_durée/60,0),round(min_distance/1000,1))
 
 #%% MAIN
 if __name__ == "__main__":
