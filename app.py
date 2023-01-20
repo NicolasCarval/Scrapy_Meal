@@ -532,8 +532,9 @@ def compar_brand(lista,listb,namea,nameb):
     available_b=0
     for i in lista.keys():
             if lista[i] is not None and listb[i] is not None:
-                prix_a.append(float(lista[i][2]))
-                prix_b.append(float(listb[i][2].replace(",",".")))
+                if(lista[i][2] is not None and listb[i][2] is not None):
+                    prix_a.append(float(lista[i][2]))
+                    prix_b.append(float(listb[i][2].replace(",",".")))
                 available_b+=1
                 available_a+=1
             elif lista[i] is None:
