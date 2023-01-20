@@ -5,11 +5,9 @@
 #%% Libraries 
 
 #Main lib
-import numpy as np
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, render_template
 import pandas as pd
 import json
-import time
 import re
 from geopy.geocoders import Nominatim
 import requests
@@ -18,20 +16,18 @@ import jellyfish
 
 #Plot lib
 import plotly
-import plotly.express as px
 import plotly.graph_objects as go
 
 #Scrapping lib
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.wait import WebDriverWait
-from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
 
-#Driver Params
+#Driver Parameters
 chrome_options = webdriver.ChromeOptions()
 chrome_options.add_argument('--headless')
 chrome_options.add_argument('--no-sandbox')
@@ -50,6 +46,7 @@ app = Flask(__name__)
 def home():
     return render_template('index.html')
 
+#List of recipe page
 @app.route('/Choose_recipe',methods=['GET'])
 def Choose_recipe():
     return render_template('Choose_recipe.html')
@@ -64,16 +61,17 @@ def Recipe():
 def Best_market():
     return render_template('Best_market.html')
 
-#Comparison page
+#Recipe not found page
 @app.route('/Not_found',methods=['GET'])
 def Not_found():
     return render_template('Not_found.html')
 
 
 
-#%% Schema Client
+#%% POST routes
+    
+#Post the recipe choice of the user
 @app.route('/Choose_recipe',methods=['POST'])
-
 def scrap_recipe():
     '''
     Récupération de la recette écrite par l'utilisateur
@@ -84,12 +82,12 @@ def scrap_recipe():
     '''
     recipe_to_scrap =  [str(x) for x in request.form.values()]
     
-    #scrap recip
+    #scrap recipe
     wd.get("https://www.750g.com/")
     wd.find_element(By.XPATH,'/html/body/header/div/div[2]/label').click()
     wd.implicitly_wait(3)
      
-    
+    #variable declaration
     recette=recipe_to_scrap[0]
     nom_recette=[]
     lien_recette=[]
@@ -100,76 +98,82 @@ def scrap_recipe():
     rech.send_keys(recette);
     rech.send_keys(Keys.ENTER);
     
-    #Si plusieurs recettes résultats alors affichage    
+    #Si plusieurs recettes en résultats alors affichage    
     if len(wd.find_elements(By.CLASS_NAME, "card-title")) > 0:
         print("len recipe ok")
         n=wd.find_elements(By.CLASS_NAME, "card-title")
         l=wd.find_elements(By.CLASS_NAME, "card-link")
         p=wd.find_elements(By.CLASS_NAME, "card-media")
     
-        for i in range(len(n)):
-            
+        for i in range(len(n)):            
             nom_recette.append(n[i].text)
             lien_recette.append(l[i].get_attribute('href'))
     
-        lenOfPage = wd.execute_script("window.scrollTo(0, document.body.scrollHeight);var lenOfPage=document.body.scrollHeight;return lenOfPage;")
-        
-        
+        lenOfPage = wd.execute_script("window.scrollTo(0, document.body.scrollHeight);var lenOfPage=document.body.scrollHeight;return lenOfPage;") 
         while(len(pic)!=len(lien_recette)):
-            print("boucle while")
             pic=[]
             for i in range(0,lenOfPage,600):
                 wd.execute_script(f"window.scrollTo(0, {i})") 
                 wd.implicitly_wait(2)
             p=wd.find_elements(By.CLASS_NAME, "to-lazy.media-round.lazyed")
             for i in p:
-                pic.append(i.get_attribute("src"))    
-            print(len(pic))
+                pic.append(i.get_attribute("src"))
         
-    #Sinon redemmande une autre cette   
+    #Sinon redemande une autre recette   
     else :
         print("Aucune recette trouvée")
-        recette=input("veuillez entrer une nouvelle recette : ")
+        #recette=input("veuillez entrer une nouvelle recette : ")
         wd.back();
     print("success")
     print(pic)
+    #S'il existe une recette nous renvoyons la liste
     if(len(nom_recette)>=1):
         df = list(zip(nom_recette, lien_recette,pic))
         return render_template('Choose_recipe.html',recipee = recipe_to_scrap[0], tables=df)
+    #Sinon nous affichons une page d'erreur
     else :
         df = [" no recipe found "]
         return render_template('Not_found.html',recipee = recipe_to_scrap[0], tables=df)
     #df["picture_link"]=pic
     
 
+#Post the ingredients of the recipe
 @app.route('/Recipe',methods=['POST'])
 def scrap_ingredients():
     """
     récupération de la liste des ingrédients
     récupération des étapes de la recette
     sur le lien de la recette
-
     """
     recipe_to_scrap =  request.form.getlist("ids")[0]
     print(request)
     print(recipe_to_scrap)
-    
     
     lien_recette=recipe_to_scrap
     wd.get(lien_recette)
     ingr = wd.find_elements(By.CLASS_NAME, "recipe-ingredients-item-label")
     #recette=wd.find_elements(By.CLASS_NAME, "recipe-steps-text")
     
+    #save ingredients
     liste_ingr=[]
     for i in ingr:
         liste_ingr.append(i.text)
     print(liste_ingr)
     result = get_clean_ingr(liste_ingr)
     
+    #check price of fuel
+    dfoil=pd.read_html('https://carbu.com/france/prixmoyens')[0]
+    dfoil["Aujourd'hui"]=dfoil["Aujourd'hui"].str.extract(r'(\d,\d+)')
+    dfoil["Aujourd'hui"]=dfoil["Aujourd'hui"].str.replace(',','.')
+    dfoil["Aujourd'hui"] = dfoil["Aujourd'hui"].astype('float64')
+    dfoil=dfoil.iloc[:,:2]
+    dfoil.columns=["type de carburant","prix €/L"]
     
+    #format ingredients
     result["complete"] = result["Produit"]+" - "+result["Quantité"].astype(str)+" - "+result["Unité"]
-    return render_template('Recipe.html',recipee = "yooo", tables=result.complete.tolist())
+    return render_template('Recipe.html',recipee = "yooo", tables=result.complete.tolist(), fuel=list(zip(dfoil["type de carburant"].tolist(),  dfoil["prix €/L"].tolist())))
 
+#Post the best market for selected ingredients
 @app.route('/Best_market',methods=['POST'])
 def scrap_market():
     '''
@@ -177,74 +181,78 @@ def scrap_market():
         Recherche sur Aldi
         Recherche sur SuperMarcheMatch
     Comparaison des résultats
-    
     '''
+    #list of ingredients selected
     ing_to_scrap =  request.form.getlist("ids")
     list_ingredient = [el.split(" - ")[0] for el in ing_to_scrap]
     print(list_ingredient)
     
-
-    #scrap ing
+    location_to_scrap = request.form.getlist("location")[0]
+    print(location_to_scrap)
+    #scrap ingredients
     # sur match
     match_list = get_liste_achat_match(list_ingredient)
     # sur aldi
     aldi_list=get_liste_achat_aldi(list_ingredient)
+    print("\n\nhere\n")
     print(match_list)
     print(aldi_list)
     
-    # calcule de la différence
+    ingredient_index = []
+    for key,val in match_list.items():
+        if val is not None and key in aldi_list:
+            if aldi_list[key] is not None:
+                ingredient_index.append(key)
+    # calcul de la différence
     diff,low,total_a,total_b,prix_a,prix_b,available_a,available_b = compar_brand(aldi_list,match_list,"Aldi","Match & Smatch")    
     
-    result = pd.DataFrame({"Prix Aldi ":prix_a, "Prix Match & Smatch ":prix_b})
+    result = pd.DataFrame({"Prix Aldi ":prix_a, "Prix Match & Smatch ":prix_b},index=ingredient_index)
     show = [str(diff)+" %",available_a, available_b]
+    
+    #Barchart creation
     colors = ['lightslategray',] * 2
     colors[0] = 'Green'
     if total_a >total_b:
         colors[0] = 'lightslategray'
         colors[1] = 'Green'
-    #affichage
     fig = go.Figure(data=[go.Bar(x=['Aldi', 'Match & Smatch'],
                                  y=[float(total_a), float(total_b)],marker_color=colors)])
     fig.update_layout(title_text='Prix total le moins cher')
+    #Saving graph to json object
     graphJSON = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
 
     ###### Nouveau bloc à entrer dans une nouvelle page #####
     
     #Obtenir l'adresse de l'utilisateur
     locator = Nominatim(user_agent="myGeocoder")
-    location=None
-    while location is None :
-        address=input("entrer votre adresse :")
-        location = locator.geocode(address)
+    location = locator.geocode(location_to_scrap)
+    if location is None:
+        print("couldn't find location, using default instead")
+        location = locator.geocode("Courbevoie")
+        
     #Rechercher les magasins les plus proche
     aldi_nom,aldi_d,aldi_km=get_nearest_mag("Aldi",location)
     match_nom,match_d,match_km=get_nearest_mag("Match",location)
-    #return nom du mag, durée en min et distance en km 
+    #return nom du magasin, durée en min et distance en km 
     print(aldi_nom,match_nom)
     #type de carburant de la voiture de l'utilisateur
     #faire cocher à l'utilisateur dans ce df
-    dfoil=pd.read_html('https://carbu.com/france/prixmoyens')[0]
-    dfoil["Aujourd'hui"]=dfoil["Aujourd'hui"].str.extract(r'(\d,\d+)')
-    dfoil["Aujourd'hui"]=dfoil["Aujourd'hui"].str.replace(',','.')
-    dfoil["Aujourd'hui"] = dfoil["Aujourd'hui"].astype('float64')
-    dfoil=dfoil.iloc[:,:2]
-    dfoil.columns=["type de carburant","prix €/L"]
-    eurol=1.950
+    
+    eurol=float(request.form.getlist("fuel")[0])
     
     #et Lui demander sa consommation au 100km
     #Calcul du prix du trajet dans chaque mag
-    conso=5
+    conso=float(request.form.getlist("conso")[0])
+    print(conso)
 
     prix_trajet_aldi=((conso/100)*aldi_km)*eurol
     prix_trajet_match=((conso/100)*match_km)*eurol
     
     print(prix_trajet_aldi,prix_trajet_match)
-    
-
-
-
-                                                                                  
-    return render_template('Best_market.html', graphJSON=graphJSON,show=show, tables=[result.to_html(classes='data')], titles=result.columns.values)
+    df_distance = pd.DataFrame({"Nom du magasin":[aldi_nom, match_nom],
+                                "Distance km":[aldi_km,match_km],
+                                "Prix Trajet":[prix_trajet_aldi,prix_trajet_match]},index=["Aldi","Match"]).sort_values(by="Prix Trajet")
+    return render_template('Best_market.html', graphJSON=graphJSON,show=show, tables=[result.to_html(classes='data'), df_distance.to_html(classes="data")], titles=result.columns.values)
 
 
 
@@ -256,6 +264,7 @@ def get_clean_ingr(liste_ingr):
     match = re.search(r"(.*) ou (.*)", ingredient)
     if match: ingredient= match.group(1)
     brute=True
+    
     # c à s / c à c
     match = re.search(r"(\d+)\sc\.\sà\s[s|c]\.\s(de|d')( |)(.*)", ingredient)
     if match:
@@ -269,8 +278,7 @@ def get_clean_ingr(liste_ingr):
       "Produit":[name]})
       df_course = df_course.append(df1)
       brute=False
-
-
+      
     # sachet / paquets
     match = re.search(r"(\d+) (?:paquet+s?|sachet+s?) (de|d')( |)(.*)", ingredient)
     if match:
@@ -340,8 +348,7 @@ def get_clean_ingr(liste_ingr):
       "Produit":[name]})
       df_course = df_course.append(df1)
       brute=False
-
-
+      
     # kg de
     match = re.search(r"(\d+)( |)+kg\s(de|d')( |)+(.*)", ingredient)
     if match:
@@ -410,10 +417,8 @@ def get_clean_ingr(liste_ingr):
       "Produit":[name]})
       df_course = df_course.append(df1)
       brute=False
-
       
     if brute==True:
-
       match = re.search(r"(\d+)\s(.*)", ingredient)
       if match:
         quantity = match.group(1)
@@ -436,7 +441,6 @@ def get_clean_ingr(liste_ingr):
         "Produit":[name]})
         df_course = df_course.append(df1)
       
-
   df_course=df_course.drop_duplicates()
   return df_course
 
@@ -465,7 +469,6 @@ def get_produit_match(produit):
   wd2= copy.copy(wd)
   lenOfPage = wd.execute_script("window.scrollTo(0, document.body.scrollHeight);var lenOfPage=document.body.scrollHeight;return lenOfPage;")
   wd.execute_script(f"window.scrollTo(0, {lenOfPage})") 
-
   for i in range(0,lenOfPage,600):
             wd.execute_script(f"window.scrollTo(0, {i})") 
             wd.implicitly_wait(1)
@@ -523,14 +526,12 @@ def get_produit_match(produit):
     df_produit_ingr = pd.DataFrame(list(zip(name,cond,prixu,unite,prix_produit)),
                columns =['nom_produit',"cond",'prix_u', 'unite','prix_total'])
     
-    
     return df_produit_ingr
 
 #%% Scrapping des Courses "Aldi"
 
 def get_produit_aldi(produit):
-  try:
-    
+  try:    
     wd.get(f"https://www.aldi.be/fr/resultats-de-recherche.html?query={produit}")
     wd.implicitly_wait(1)
     try:
@@ -538,22 +539,15 @@ def get_produit_aldi(produit):
     except:
         pass
     lenOfPage = wd.execute_script("window.scrollTo(0, document.body.scrollHeight);var lenOfPage=document.body.scrollHeight;return lenOfPage;")
-
     wd.execute_script("document.body.style.zoom='50%'")
-
     for i in range(0,lenOfPage,600):
                 wd.execute_script(f"window.scrollTo(0, {i})") 
                 wd.implicitly_wait(2)
-    
-    
     wd.implicitly_wait(1)
-    index=1
     wd.implicitly_wait(2)
-    
     nom_produit=[]
     prix_u=[]
     prix_total=[]
-    
     
     #Nom Produit
     n=wd.find_elements(By.CLASS_NAME,"mod-article-tile__title")
@@ -612,7 +606,6 @@ def get_liste_achat_aldi(list_ingred):
       liste_achat_match[i]=None
   return liste_achat_match
 #%% Comparaison
-import math
 
 def compar_brand(lista,listb,namea,nameb):
     prix_a=[]
@@ -660,15 +653,15 @@ def get_nearest_mag(nom_mag,location):
   for index, row in mag_add.iterrows():
     r = requests.get(f"http://router.project-osrm.org/route/v1/car/{location.longitude},{location.latitude};{row['long']},{row['lat']}?overview=false""")
     routes = json.loads(r.content)
-    durée = routes.get("routes")[0]["duration"]
+    duree = routes.get("routes")[0]["duration"]
     distance = routes.get("routes")[0]["distance"]
 
     if distance<min_distance:
-      min_durée=durée
+      min_duree=duree
       min_distance=distance
       nom_mag=row["nom_mag"]
 
-  return(nom_mag,round(min_durée/60,0),round(min_distance/1000,1))
+  return(nom_mag,round(min_duree/60,0),round(min_distance/1000,1))
 
 #%% MAIN
 if __name__ == "__main__":

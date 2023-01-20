@@ -266,7 +266,7 @@ div.checks label {
     }
 
 div.checks input[type="checkbox"]:checked + label::before {
-    content: "V";
+    content: "-";
     transform: rotate(-360deg);
     transition: transform .3s ease-in-out;
 }
@@ -298,6 +298,12 @@ div.checks input[type="checkbox"]:checked:hover + label {
 
 div.checks label:hover {
     color: #CC310A;
+}
+
+div.checks img {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 

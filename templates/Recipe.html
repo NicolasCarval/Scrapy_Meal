@@ -18,16 +18,6 @@
 
     <div class="row">
         <div class="leftcolumn">
-            <div class="card" id="second" style="display:none;">
-                <div class="bar bar1"></div>
-                <div class="bar bar2"></div>
-                <div class="bar bar3"></div>
-                <div class="bar bar4"></div>
-                <div class="bar bar5"></div>
-                <div class="bar bar6"></div>
-                <div class="bar bar7"></div>
-                <div class="bar bar8"></div>
-            </div>
             <div id="first" class="card">
                 <h2>List of ingredients</h2>
 
@@ -42,11 +32,43 @@
                     </div>
                     {% endfor %}
 
+                    <h5>type-in your address </h5>
+                    <div>
+                        <input type="text" name="location" id="location" placeholder=" ex : Nanterre" autocomplete="off" required />
+                    </div>
+                    <br />
+
+                    <h5>type-in your fuel conso for 100km </h5>
+                    <div>
+                        <input type="number" name="conso" id="conso" min=1 max=50 placeholder=" ex : 5" autocomplete="off" required />
+                    </div>
+                    <br />
+
+
+                    <label for="fuel">Choose a fuel:</label>
+                    <select name="fuel" id="fuel" required>
+                        {% for f in fuel %}
+                        <option value="{{f[1]}}">{{f[0]}} todays price : {{f[1]}} €</option>
+                        {% endfor %}
+                    </select>
+                    
+
                     <button type="submit">GO</button>
                 </form>
 
             </div>
-
+            <div class="card" id="second" style="display:none;">
+                <h2>It can take several minutes to run</h2>
+                <br />
+                <div class="bar bar1"></div>
+                <div class="bar bar2"></div>
+                <div class="bar bar3"></div>
+                <div class="bar bar4"></div>
+                <div class="bar bar5"></div>
+                <div class="bar bar6"></div>
+                <div class="bar bar7"></div>
+                <div class="bar bar8"></div>
+            </div>
         </div>
 
     </div>
