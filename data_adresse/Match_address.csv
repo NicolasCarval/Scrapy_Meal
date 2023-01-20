@@ -1,0 +1,167 @@
+,nom_mag,addresse,lat,long
+0,Match Andenne,"Avenue Roi Albert 17
+5300 Andenne",50.4927292,5.1032111
+1,Match Ath,"Chaussée de Bruxelles 62
+7800 Ath",50.6313591,3.7855174
+2,Match Auvelais,"Rue de Falisolle 4
+5060 Sambreville",50.4465955,4.632885568648649
+3,Match Beaumont,"Rue Germain Michiels 46
+6500 Beaumont",50.2374333,4.2402035
+4,Match Binche,"Rue Zéphirin Fontaine 140
+7130 Binche",50.420014,4.170846
+5,Match Braine-L'Alleud,"Avenue de la Belle Province 73
+1420 Braine-l'Alleud",50.68692765,4.374473526978711
+6,Match Braine-Le-Comte,"Rue Charles Mahieu 22
+7090 Braine-le-Comte",50.6079897,4.1324632
+7,Match Burdinne,"Chaussée de Namur 3
+4210 Burdinne",50.5722006,5.052428694900582
+8,Match Chatelet Perron,"Place du Perron 8
+6200 Châtelet",50.4041529,4.5204071
+9,Match Chimay,"Chaussée de Mons 17
+6460 Chimay",50.051206949999994,4.309095798810272
+10,Match Couvin,"Rue de la Gare 15
+5660 Couvin",50.0541675,4.492791
+11,Match Deurne,"Ruggeveldlaan 601
+2100 Antwerpen",51.2228811,4.478544
+12,Match Fleurus,"Chaussée de Charleroi 248
+6220 Fleurus",50.4578664,4.5294405
+14,Match Fontaine,"Rue de Leernes 2
+6140 Fontaine-l'Évêque",50.3848965,4.3408622
+15,Match Forest / Vorst,"Alsembergsesteenweg 171
+1190 Vorst",50.8207052,4.3416257
+16,Match Gembloux,"Chaussée de Charleroi 22
+5030 Gembloux",50.5686124,4.692765
+17,Match Gent,"Woodrow Wilsonplein 4
+9000 Gent",51.04785015,3.730490878747198
+18,Match Grez Doiceau,"Chaussée de la Libération 47
+1390 Grez-Doiceau",50.7419486,4.686582
+19,Match Huy,"Avenue de Batta 10
+4500 Huy",50.5200133,5.235345
+20,Match Jumet,"Rue Hubert Bastin 7
+6040 Charleroi",50.4529172,4.4305448
+21,Match Leuven,"Bondgenotenlaan 58
+3000 Leuven",50.8798487,4.707431
+22,Match Leuze,"Rue de Condé 62
+7900 Leuze-en-Hainaut",50.5953246,3.6182754750830215
+23,Match Marcinelle,"Avenue Eugène Mascaux 462
+6001 Charleroi",50.3878377,4.4341612
+24,Match Momignies,"Route de Macon 7
+6590 Momignies",50.0359981,4.177737
+25,Match Mons,"Grand Rue 67
+7000 Mons",50.4504265,3.9495542
+26,Match Mouscron,"Sint-Paulusdoorgang 18
+7700 Moeskroen",50.7417293,3.2136362
+27,Match Namur,"Rue des Echasseurs
+5000 Namur",50.4625599,4.8653414
+28,Match Saint-Gilles / Sint-Gillis,"Waterloosesteenweg 71
+1060 Sint-Gillis",50.8225329,4.3542533
+29,Match Scheut,"Ninoofsesteenweg 500
+1070 Anderlecht",50.847451,4.3080306
+30,Match Stockel,"Kerkstraat 98
+1150 Sint-Pieters-Woluwe",50.840707550000005,4.464252934648448
+31,Match Wanfercée Baulet,"Rue Franklin Roosevelt 8
+6224 Fleurus",50.47093435,4.589549414481008
+32,Match Waremme Nord,"Place de Gérardmer
+4300 Waremme",50.6979068,5.260736
+33,Match Waremme sud,"Rue de Huy 70
+4300 Waremme",50.6816962,5.2482771
+34,Match Wépion,"Chaussée de Dinant 760
+5100 Namur",50.428140400000004,4.86651190830915
+35,Match Woluwe,"Boulevard de la Woluwe 70
+1200 Woluwe-Saint-Lambert",50.8444195,4.4381457
+36,Smatch Assenede,"Trieststraat 6
+9960 Assenede",51.2128829,3.7612424
+37,Smatch Belsele,"Grote Baan 121
+9250 Waasmunster",51.13176695,4.051016606478772
+38,Smatch Bertogne,"Bertogne 2
+6687 Bertogne",50.08014115,5.663733910752686
+39,Smatch Brugge,"Langestraat 55
+8000 Brugge",51.2123353,3.2382494
+40,Smatch Buggenhout,"Kasteelstraat 61
+9255 Buggenhout",51.0108608,4.205043805329364
+41,Smatch Chatelet,"Rue des Français 153
+6200 Châtelet",50.4008425,4.5323937
+42,Smatch Cuesmes,"Rue de l'Etang Derbaix 153
+7033 Mons",50.4394372,3.9210287
+43,Smatch De Haan,"Grotestraat 111
+8420 De Haan",51.27056665,3.041144773303059
+44,Smatch De Klinge,"Bergstraat 40
+9170 Sint-Gillis-Waas",51.250479,4.0831976
+45,Smatch Deerlijk,"Hoogstraat 2
+8540 Deerlijk",50.8556353,3.3603943107739154
+46,Smatch Eksaarde,"Amand de Vosstraat 2
+9160 Lokeren",51.1470896,3.959242
+47,Smatch Galmaarden,"Nieuwstraat 18
+1570 Galmaarden",50.7519367,3.9707452
+48,Smatch Gavere,"Stationsstraat 162
+9890 Gavere",50.9296881,3.6557738
+49,Smatch Groot Bijgaarden,"Robert Dansaertlaan 234
+1702 Groot-Bijgaarden",50.8663258,4.2587659
+50,Smatch Gullegem,"Bankstraat 16
+8560 Wevelgem",50.8445015,3.2033781306575992
+52,Smatch Jemappes,"Rue Aux Vignes 7
+7012 Mons",50.4493905,3.8921481
+53,Smatch Jodoigne,"Grand Place 79
+1370 Jodoigne",50.7255557,4.8666331
+54,Smatch Kalken,"Gaverstraat 25
+9270 Laarne",51.04227965,3.924732031936618
+55,Smatch Kessel-Lo,"Benedenplein 6
+3010 Leuven",50.8823937,4.7169432
+57,Smatch Knesselare,"Maldegemseweg 3
+9910 Knesselare",51.13778795,3.4182727478408124
+58,Smatch Lendelede,"Burgemeester R. Vandemaeleplein 12
+8860 Lendelede",50.8855132,3.2369517
+59,Smatch Machelen,"Rijksweg 14
+9870 Machelen",50.953063,3.4905741
+60,Smatch Maldegem,"Koning Leopoldlaan 2
+9990 Maldegem",51.20407,3.4536363
+61,Smatch Mariakerke,"Brugsesteenweg 593
+9030 Gent",51.075432,3.6789113
+62,Smatch Mechelen,"Borzestraat 3
+2800 Mechelen",51.0264594,4.4800007
+63,Smatch Moerbeke-Waas,"Korte Damstraat 17
+9180 Moerbeke",51.173516,3.9478011
+64,Smatch Munkzwalm,"Noordlaan 5
+9630 Zwalm",50.880308,3.73427
+65,Smatch Nieuwpoort,"Kaai 47
+8620 Nieuwpoort",51.13289025,2.7466350736989673
+66,Smatch Oordegem,"Grote Steenweg 155
+9340 Lede",50.9568773,3.8998811
+67,Smatch Oostende,"Frère-Orbanstraat 279
+8400 Oostende",51.216520200000005,2.922526065216686
+68,Smatch Oostende 1,"Gelijkheidstraat 89
+8400 Oostende",51.21625695,2.9012561007102273
+69,Smatch Oudenaarde,"Achter de Wacht 2
+9700 Oudenaarde",50.84640455,3.6041527083730536
+70,Smatch Puurs,"G. Gezellelaan 82
+2870 Puurs",51.0749796,4.288208060771598
+71,Smatch Ruddervoorde,"Torhoutsestraat 51
+8020 Oostkamp",51.09287175,3.2057674115797967
+72,Smatch Schaerbeek,"Auguste Lambiottestraat 38
+1030 Schaarbeek",50.8563538,4.3881549
+73,Smatch Sleidinge,"Polenstraat 171
+9940 Sleidinge",51.1255039,3.678716
+74,Smatch Stekene,"Bormtestraat 9
+9190 Stekene",51.1981856,4.0515514
+75,Smatch Stembert,"Avenue Fernand Desonay 10
+4801 Verviers",50.5912963,5.8922601
+76,Smatch Thulin,"Rue Ferrer 19
+7350 Hensies",50.4282549,3.740265
+77,Smatch Tienen,"Getestraat 100
+3300 Tienen",50.799627099999995,4.9277135496148965
+78,Smatch Vaux Sur Sûre,"La Barrière 13
+6640 Vaux-sur-Sûre",49.9282745,5.5944409
+79,Smatch Waasmunster,"Kerkplein 4
+9250 Waasmunster",51.1058908,4.0871114
+80,Smatch Wachtebeke,"Melkerijstraat 3
+9185 Wachtebeke",51.1725197,3.8563807
+81,Smatch Woluwe,"Priester de l Epéestraat 11
+1200 Sint-Lambrechts-Woluwe",50.8431467,4.412830458126626
+82,Smatch Zele,"Gentsesteenweg 228
+9240 Zele",51.057031800000004,4.010262954935442
+83,Smatch Zeveneken,"Drongenstraat 21
+9160 Lokeren",51.100932900000004,3.907544757581482
+84,Smatch Zottegem,"Buke 20
+9620 Zottegem",50.8763627,3.8158309
+85,Smatch Zulte,"Staatsbaan 161
+9870 Zulte",50.92070775,3.443827386172738
