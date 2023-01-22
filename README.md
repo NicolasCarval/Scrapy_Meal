@@ -8,7 +8,7 @@ ESILV 2022–2023
 ## Sommaire
 
 1. [Introduction](#introduction)
-2. [Démonstration](#démonstration)
+2. [Démonstration Vidéo](#démonstration)
 3. [Installation](#installation)
 4. [Auteurs](#auteurs)
 
@@ -35,7 +35,14 @@ Notre solution "Scrapy Meal" est un interface en ligne permettant de rechercher 
 
 ## Démonstration
 
-<iframe  title="demo video" width="480" height="390" src="https://www.youtube.com/watch?v=lUN19aL4wJc" frameborder="0" allowfullscreen></iframe>
+<div align="center">
+      <a href="https://www.youtube.com/watch?v=lUN19aL4wJc">
+     <img 
+      src="https://img.youtube.com/vi/lUN19aL4wJc/0.jpg" 
+      alt="Everything Is AWESOME" 
+      style="width:100%;">
+      </a>
+    </div>
 
 [Retour au sommaire](#sommaire)
 
