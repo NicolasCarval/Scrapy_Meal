@@ -82,7 +82,7 @@ Notre solution "Scrapy Meal" est un interface en ligne permettant de rechercher 
 
 >utiliser la commande suivante pour installer des librairies
 ```
-   pip install "library name"
+   pip install XXXX (i.e. pandas par exemple)
 ```
 
 
